@@ -1,0 +1,26 @@
+{
+  "name": "demofile",
+  "version": "1.0.0",
+  "description": "code",
+  "main": "helloworld2.js",
+  "engines": {
+    "node": "9.3.0"
+  },
+  "scripts": {
+    "start": "node helloworld2.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "express": "^4.16.2",
+    "http": "^0.0.0",
+    "jsforce": "^1.8.1"
+  },
+  "repository":
+  {
+  "type":"git",
+  "url":"https://git.heroku.com/your-daily-planner"
+  }
+  
+}

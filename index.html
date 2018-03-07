@@ -1,0 +1,771 @@
+
+<!DOCTYPE html>
+<html>
+<title>W3.CSS Template</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="w3.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<style>
+.bgcolorGreen{
+background-color : green;
+
+}
+body, h1,h2,h3,h4,h5,h6 {font-family: "Montserrat", sans-serif}
+.w3-row-padding img {margin-bottom: 12px}
+/* Set the width of the sidebar to 120px */
+.w3-sidebar {width: 120px;background: #222;}
+/* Add a left margin to the "page content" that matches the width of the sidebar (120px) */
+#main {margin-left: 120px}
+/* Remove margins from "page content" on small screens */
+@media only screen and (max-width: 600px) {#main {margin-left: 0}}
+</style>
+
+<script type="text/javascript" src="jquery-3.2.1.min.js">
+
+</script>
+<script type="text/javascript">
+var globalLocation=window.location.href;
+var historyXMLData;
+/*
+function demoInsert()
+{
+
+var xhr = new XMLHttpRequest();
+var url = "http://127.0.0.1:3001/insertRecord";
+xhr.open("POST", url, true);
+//xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+xhr.setRequestHeader("Content-type", "application/json");
+xhr.onreadystatechange = function () 
+{
+    if (xhr.readyState === 4 && xhr.status === 200) 
+	{
+	var jsonData=JSON.parse(xhr.responseText);
+	
+	 }
+};
+var jsonStringData="[";
+for(var objectValue in allQuestionsWithType)
+{
+jsonStringData+="{shivalightning__indexValue__c : "+objectValue.shivalightning__indexValue__c+",shivalightning__QuestionName__c : "+objectValue.shivalightning__QuestionName__c+",shivalightning__type__c :"+objectValue.shivalightning__type__c+",Id :"+objectValue.Id+"},";
+
+
+}
+jsonStringData=jsonStringData.substr(0,jsonStringData.length-1);
+jsonStringData+="]";
+
+console.log("json data is "+jsonStringData);
+xhr.send(jsonStringData);
+
+
+//xhr.send(JSON.stringify([
+//{ shivalightning__indexValue__c : "8", shivalightning__QuestionName__c : "question5",shivalightning__type__c:"checkbox"},
+//{shivalightning__indexValue__c : "9", shivalightning__QuestionName__c : "question6",shivalightning__type__c:"text"}]
+//));
+
+}
+*/
+var allAnswer=[];
+var ansQuestionMap= new Map();
+var allTempQuestionsWithType=new Array();
+var answerRecordId=null;
+var isAnsweresLoaded=false;
+var tempQuestions=new Array();
+var currentIndexValue; //it must be used to assign index to the question for sorting purpose
+var allQuestionsWithType = new Array();
+var allTempQuestionsWithType=new Array();
+
+function dummyDataInit()
+{
+allQuestionsWithType.push(new Object({type:"text",value:"how are you",indexValue:0,Id:null,inputAnswer:null}));	
+allQuestionsWithType.push(new Object({type:"checkbox",value:"did you do workout",indexValue:1,Id:null,inputAnswer:null}));				  
+allQuestionsWithType.push(new Object({type:"text",value:"work focus ",indexValue:2,Id:null,inputAnswer:null}));				  
+allQuestionsWithType.push(new Object({type:"checkbox",value:"meditation",indexValue:3,Id:null,inputAnswer:null}));				  
+allQuestionsWithType.push(new Object({type:"checkbox",value:"gym",indexValue:4,Id:null,inputAnswer:null}));				  
+for(var objectValue in allQuestionsWithType)
+			  {
+			  console.log(objectValue);
+			  			  console.log(allQuestionsWithType[objectValue]);
+			  			  console.log(allQuestionsWithType[objectValue].type+" " +allQuestionsWithType[objectValue].value);
+						if(allQuestionsWithType[objectValue].type=="checkbox")
+						allAnswer.push(true);
+						else
+						allAnswer.push("0");
+				ansQuestionMap.set(objectValue,allAnswer);
+			//  console.log(" in "+objectValue.type+" "+objectValue.value);
+			  }
+}
+			 
+
+function dataInit()
+{
+console.log("in data init ");
+var xhr = new XMLHttpRequest();
+//var url = "http://127.0.0.1:3001/getData";
+var url=globalLocation+"getData";
+xhr.open("GET", url, true);
+xhr.setRequestHeader("Content-type", "application/json");
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+	var jsonData=JSON.parse(xhr.responseText);
+	//console.log(jsonData);
+	console.log(jsonData.length);
+	if(jsonData.length==0)
+	dummyDataInit();
+	else
+	{
+      for(var i=0;i<jsonData.length;i++)
+	   {
+	   console.log(jsonData[i].Id);
+	   allQuestionsWithType.push(new Object({Id:jsonData[i].Id,type:jsonData[i].type,value:jsonData[i].value,indexValue:jsonData[i].indexValue,inputAnswer:null}));
+	 
+	 }
+	 if(isAnsweresLoaded==false)
+	 {
+	 isAnsweresLoaded=true;
+	 answerSet();
+	 }
+	    
+
+		 $("#questionAnchorNav").click();
+
+     }
+	 }
+};
+xhr.send();
+}
+
+function answerSet()
+{
+var xhr = new XMLHttpRequest();
+	console.log("in answer set ");
+
+//var url = "http://127.0.0.1:3001/fetchAnswers";
+var url=globalLocation+"fetchAnswers";
+
+xhr.open("GET", url, true);
+xhr.setRequestHeader("Content-type", "application/json");
+xhr.onreadystatechange = function () 
+{
+    if (xhr.readyState === 4 && xhr.status === 200) 
+	{
+	var jsonData=JSON.parse(xhr.responseText);
+		console.log("jsonData "+xhr.responseText +" length is "+xhr.responseText.length);
+
+	if(jsonData==null || xhr.responseText=="\"\"")
+	{
+		console.log("no data found in fetchAnswers");
+
+	}
+	else
+	{
+	answerRecordId=jsonData[0].AnswerId;
+		console.log(jsonData.length);
+		for(var i=0;i<jsonData.length;i++)
+		{
+					for(var j=0;j<allQuestionsWithType.length;j++)
+					{
+								if(jsonData[i].QuestionId==allQuestionsWithType[j].Id)
+								{
+								allQuestionsWithType[j].inputAnswer=jsonData[i].AnswerData;
+								}
+					}
+		}
+	}
+	
+	 }
+};
+
+xhr.send();
+
+
+
+}
+
+$(document).ready(function()
+{
+dataInit();
+console.log(" console loaded");
+var divElement=$("<div>",{id: "div1", "html": "at"});
+var dynamicDataLoading;
+var currentTab="questionAnchorNav";
+
+$("#questionAnchorNav,#answerAnchorNav,#historyAnchorNav").click(
+function()
+{
+  console.log(this.id);
+  console.log($(this).children().length);
+  var allChild=$(this).children();
+  for(var i=0;i<allChild.length;i++)
+  {
+  
+	console.log(allChild.get(i).tagName+" "+allChild.get(i).children.length);
+
+  }
+  
+  if(this.id=="questionAnchorNav")
+  {
+  console.log("in question anchorNav selected..about to call handleQuestionTabFunction handle method");
+  handleQuestionTabFunction();
+  }
+  else if(this.id=="answerAnchorNav")
+  {
+  console.log("in question anchorNav selected..about to call handleAnswerTabFunction handle method");
+  handleAnswerTabFunction();
+  }
+    else if(this.id=="historyAnchorNav")
+  {
+  console.log("in question anchorNav selected..about to call handleHistoryTabFunction handle method");
+  handleHistoryTabFunction();
+  }
+  else
+    console.log("id didnt match anything");
+
+  
+
+  return false;
+}
+
+
+);
+
+function listOfSelectOptionsHelperMethod(inputdata)
+{
+  var selecteddata="<select> ";
+console.log("in list of selectopitonhelpermethod "+inputdata+" " +(inputdata=="text"));
+ if(inputdata=="text")
+ selecteddata+="<option value='text' selected='true'>text</option><option value='checkbox' >checkbox</option>";
+ else
+ selecteddata+="<option value='text' >text</option><option value='checkbox' selected='true'>checkbox</option>";
+ selecteddata+="</select>";
+ console.log(selecteddata);
+ return selecteddata;
+}
+
+function handleQuestionTabFunction()
+{
+var dynamicDataLoading="<table>";
+for(var objectValue in allQuestionsWithType)
+			  {
+			  dynamicDataLoading+="<tr><td>";
+			  console.log(objectValue);
+			  			  console.log(allQuestionsWithType[objectValue]);
+			  			  console.log(allQuestionsWithType[objectValue].type+" " +allQuestionsWithType[objectValue].value);
+					if(!dynamicDataLoading)
+					{
+								if(allQuestionsWithType[objectValue].type=="text")
+								{
+								dynamicDataLoading=(allQuestionsWithType[objectValue].value+" "+listOfSelectOptionsHelperMethod("text")+"</td></tr>");
+								}
+								else
+								{
+								dynamicDataLoading=(allQuestionsWithType[objectValue].value+" "+listOfSelectOptionsHelperMethod("checkbox")+"</td></tr>");
+
+								}
+					}
+					else
+					{
+					
+							if(allQuestionsWithType[objectValue].type=="text")
+								{
+										
+									dynamicDataLoading+=(allQuestionsWithType[objectValue].value+" "+listOfSelectOptionsHelperMethod("text")+"</td></tr>");
+										
+								}
+								else
+								{
+										
+									dynamicDataLoading+=(allQuestionsWithType[objectValue].value+" "+listOfSelectOptionsHelperMethod("checkbox")+"</td></tr>");
+									
+								}
+								
+								
+								
+					}
+			  }
+			  					dynamicDataLoading+="</table>";
+
+console.log(dynamicDataLoading);
+$('#contentDiv').html(dynamicDataLoading).attr("class","bgcolorGreen");
+var InputButtonToAdd	=	  $('<input/>').attr({ type: 'button', name:'button',id:'buttontoAdd', value:'add Question'}).on("click",addQuestionHandler);
+var submitNewQuestionButton	=	  $('<input/>').attr({ type: 'button', name:'button',id:'submitNewQuestions', value:'submit Questions'}).on("click",submitNewQuestionsHandler);
+
+var allTempEletoAdd;
+$('#contentDiv').append("<table id='tempquestionTable'>");
+
+for(var i=0;i<tempQuestions.length;i++)
+{
+var trElement=$("<tr>");
+ allTempEletoAdd=$('<input/>').attr({ type: 'text', name:'tempText'+i,id:'tempText'+i,size:10});
+trElement.append(allTempEletoAdd);
+trElement.append(listOfSelectOptionsHelperMethod("text"));
+
+trElement.append("<br>");
+$('#tempquestionTable').append(trElement);
+
+/*$('#tempquestionTable').append(listOfSelectOptionsHelperMethod("text"));
+ allTempEletoAdd=$('<input/>').attr({ type: 'text', name:'tempText'+i,id:'tempText'+i});
+ allTempEletoAdd.append(allTempEletoAdd);
+ allTempEletoAdd.append("<br>");
+ */
+}
+
+$('#contentDiv').append($("<div id='errorDiv'>"));
+$('#contentDiv').append(InputButtonToAdd);
+$('#contentDiv').append(submitNewQuestionButton);
+
+}
+
+function submitNewQuestionsHandler()
+{
+//var currentIndexValue=allQuestionsWithType.length;
+
+
+
+var isValid=validityCheckForTemporaryQuestions();
+console.log(isValid);
+if(isValid)
+{
+
+var alltempInputsOnScreenValue=$("#tempquestionTable :input");
+console.log("all inputs onscreen "+alltempInputsOnScreenValue.length);
+var inputData='{\"questions\":[';
+for(var i=0;i<alltempInputsOnScreenValue.length;i=(i+2))
+{
+console.log(alltempInputsOnScreenValue[i]);
+console.log(alltempInputsOnScreenValue[i+1].value+ " " +alltempInputsOnScreenValue[i].value+" alquestionSize "+allQuestionsWithType.length);
+//allQuestionsWithType.push(new Object({type:alltempInputsOnScreenValue[i+1].value,value:alltempInputsOnScreenValue[i].value,indexValue:allQuestionsWithType.length}));	
+inputData+=("{\"shivalightning__QuestionName__c\":\""+alltempInputsOnScreenValue[i].value+"\",\"shivalightning__indexValue__c\":\""+	allQuestionsWithType.length+"\",\"shivalightning__type__c\":\""+alltempInputsOnScreenValue[i+1].value+"\"},");
+}
+inputData=inputData.substr(0,inputData.length-1);
+inputData+="]}";
+console.log("before calling createQuestionCalloutHelper :input data is "+inputData);
+createQuestionCalloutHelper(inputData);
+
+}
+
+}
+
+function createQuestionCalloutHelper(inputData)
+{
+var xhr = new XMLHttpRequest();
+console.log("in create question handler "+inputData);
+//var url = "http://127.0.0.1:3001/createRecords";
+var url=globalLocation+"createRecords";
+
+xhr.open("POST", url, true);
+xhr.setRequestHeader("Content-type", "application/json");
+xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+	var jsonData=JSON.parse(xhr.responseText);
+	//console.log(jsonData);
+	console.log(jsonData.length);
+	
+	
+      for(var i=0;i<jsonData.length;i++)
+	   {
+	   console.log(jsonData[i].shivalightning__type__c+"  "+jsonData[i].Id+" " +jsonData[i].shivalightning__indexValue__c+" "+jsonData[i].shivalightning__QuestionName__c);
+   allQuestionsWithType.push(new Object({Id:jsonData[i].Id,type:jsonData[i].shivalightning__type__c,value:jsonData[i].shivalightning__QuestionName__c,indexValue:jsonData[i].shivalightning__indexValue__c,inputAnswer:null}));
+	   }
+	    
+	   
+		 tempQuestions=new Array();
+		$("#tempquestionTable").empty();
+		handleQuestionTabFunction();
+     
+	 }
+};
+xhr.send(inputData);
+
+//xhr.send(JSON.parse(inputData));
+
+}
+
+function validityCheckForTemporaryQuestions()
+{
+console.log("inside validityCheckForTemporaryQuestions functions "+tempQuestions.length);
+var errorData="";
+		if((!tempQuestions) || (tempQuestions.length==0))
+		{
+		  
+		}
+		else
+		{ 
+		console.log("in else block");
+		var alltempInputsOnScreenValue=$("#tempquestionTable :input:text");
+		console.log("all inputs onscreen "+alltempInputsOnScreenValue.length);
+		  for(var i=0;i<alltempInputsOnScreenValue.length;i++)
+		  {
+		      if(!alltempInputsOnScreenValue[i].value)
+			  {
+			     errorData+="index "+(i+1)+" of the new input element is empty<br/>";
+			  }
+			  else
+			  console.log("temp data is "+alltempInputsOnScreenValue[i].value);
+		  }
+		}
+				  $("#errorDiv").html(errorData);
+				  console.log(" errorData "+errorData);
+				  if(!errorData || (errorData.length==0))
+				  {
+				   return true;
+				  }
+				  else
+				  return false;
+
+}
+
+function addQuestionHandler()
+{
+  console.log("in addQuestionhandler function allQuestionsWithType size "+allQuestionsWithType.length+" " +this);
+ 
+tempQuestions.push({type:'text',value:''});
+var trElement=$("<tr>");
+ allTempEletoAdd=$('<input/>').attr({ type: 'text', name:'tempText'+tempQuestions.length-1,id:'tempText'+tempQuestions.length-1,size:10});
+ 
+trElement.append(allTempEletoAdd);
+trElement.append(listOfSelectOptionsHelperMethod("text"));
+
+trElement.append("<br>");
+$('#tempquestionTable').append(trElement);
+
+console.log("add questions size now "+allQuestionsWithType.length);
+}
+
+function answerchosenHandler(value)
+{
+console.log("answerchosenhandler "+value);
+/*
+for(i=0;i<which.parentNode.getElementsByTagName('input').length;i++){
+if(which==which.parentNode.getElementsByTagName('input')[i]){
+alert(i);
+*/
+}
+
+function answerchosenHandlerdemo()
+{
+console.log("answerchosenhandlerdemo "+this+" "+this.id);
+console.log(this.id +" "+this.value);
+var inputAnswerValue="";
+if(this.type=="checkbox")
+inputAnswerValue=this.checked;
+else
+inputAnswerValue=this.value;
+console.log("inputAnswerValue : "+inputAnswerValue);
+
+
+for(var i=0;i<allQuestionsWithType.length;i++)
+{
+if(allQuestionsWithType[i].Id==this.id)
+{
+allQuestionsWithType[i].inputAnswer=inputAnswerValue;
+}
+
+
+}
+
+/*
+
+//var formElements=$("#answerForm");
+var formElements= $("#answerForm :input");
+
+console.log(formElements.length);
+for(var i=0;i<formElements.length;i++)
+{
+   if(formElements[i]==this)
+   
+   {
+   console.log("it is the same element "+formElements[i].id +" and the order of the element is "+(i+1));
+   
+   break;
+   }
+   
+}
+
+for(i=0;i<which.parentNode.getElementsByTagName('input').length;i++){
+if(which==which.parentNode.getElementsByTagName('input')[i]){
+alert(i);
+*/
+}
+
+
+function handleAnswerTabFunction()
+{
+console.log("in handleAnswerTab Function ");
+var dynamicDataLoading=$("<form id='answerForm'>");
+var indexI=0;
+$( "#elements" ).on( "click", "div p", function( event ) {} );
+
+for(var objectValue in allQuestionsWithType)
+			  {
+			  console.log(objectValue);
+			  			  console.log(allQuestionsWithType[objectValue]);
+			  			  console.log(allQuestionsWithType[objectValue].type+" " +allQuestionsWithType[objectValue].value);
+					var InputElementToAdd;
+					
+							if(allQuestionsWithType[objectValue].type=="text")
+								{
+						InputElementToAdd	=	$("<input type='text' size='5' value='"+allQuestionsWithType[objectValue].inputAnswer+"' id='"+allQuestionsWithType[objectValue].Id+"'>"+allQuestionsWithType[objectValue].value+" </input> ").on("change",answerchosenHandlerdemo);
+						
+								}
+								else
+								{
+									if(allQuestionsWithType[objectValue].inputAnswer=='true')
+									{
+								
+														 InputElementToAdd =	$("<input type='checkbox' checked=true id='"+allQuestionsWithType[objectValue].Id+"'>"+allQuestionsWithType[objectValue].value+" </input> ").on("change",answerchosenHandlerdemo);
+
+									}
+									else
+									{
+										InputElementToAdd =	$("<input type='checkbox' id='"+allQuestionsWithType[objectValue].Id+"'>"+allQuestionsWithType[objectValue].value+" </input> ").on("change",answerchosenHandlerdemo);
+									}
+							}	
+						var brEle=$("<br>");
+						//InputElementToAdd.append(brEle);
+						dynamicDataLoading.append(InputElementToAdd);
+						dynamicDataLoading.append(brEle);
+indexI++;		
+		}
+
+console.log(dynamicDataLoading);
+var submitNewAnswerButton	=	  $('<input/>').attr({ type: 'button', name:'submitNewAnswers',id:'submitNewAnswers', value:'submit Answers'}).on("click",submitAnswersHandler);
+
+$('#contentDiv').html(dynamicDataLoading);
+$('#contentDiv').append(submitNewAnswerButton);
+}
+
+function submitAnswersHandler()
+{
+var xhr = new XMLHttpRequest();
+//var url = "http://127.0.0.1:3001/submitAnswers";
+var url=globalLocation+"submitAnswers";
+
+xhr.open("POST", url, true);
+//xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+xhr.setRequestHeader("Content-type", "application/json");
+xhr.onreadystatechange = function () 
+{
+    if (xhr.readyState === 4 && xhr.status === 200) 
+	{
+	var jsonData=JSON.parse(xhr.responseText);
+	
+	 }
+};
+var jsonStringData;
+if(answerRecordId==null)
+jsonStringData="{\"answer\":{\"Id\":"+null+",";
+else
+jsonStringData="{\"answer\":{\"Id\":\""+answerRecordId+"\",";
+
+var answerValue="";
+for(var objectValue in allQuestionsWithType)
+{
+answerValue+=(allQuestionsWithType[objectValue].Id+":"+allQuestionsWithType[objectValue].inputAnswer+";");
+
+
+}
+jsonStringData+=("\"shivalightning__Answers__c\":\""+answerValue+"\"}}");
+console.log("json data is "+jsonStringData);
+xhr.send(jsonStringData);
+
+
+//xhr.send(JSON.stringify([
+//{ shivalightning__indexValue__c : "8", shivalightning__QuestionName__c : "question5",shivalightning__type__c:"checkbox"},
+//{shivalightning__indexValue__c : "9", shivalightning__QuestionName__c : "question6",shivalightning__type__c:"text"}]
+//));
+}
+
+function handleHistoryTabFunction()
+{
+var dynamicDataLoading="hello in tab history";
+if(!historyXMLData)
+hisoryTabCalloutHelper();
+else
+{
+ var dynamicHtmlValue=$('#contentDiv').html('').attr("class","bgcolorGreen");
+ var divElement=$("<div/>").attr({id:"FilledDataInThisDay"});
+
+ console.log("in handleHistoryTab fn non empty historyXMLData :"+JSON.stringify(historyXMLData));
+for(var  indjsonData in historyXMLData)
+			{
+			var jsHTMLLoading=$('<input/>').attr({ type: 'button', name:'button',id:'Day'+indjsonData, value:indjsonData}).on("click",historyDayHandler);
+			dynamicHtmlValue.append(jsHTMLLoading);
+			}
+dynamicHtmlValue.append(divElement);
+}
+
+}
+
+function historyDayHandler()
+{
+console.log("in historyDayHandler");
+console.log("in historyDayHandler "+this.id);
+var elementOrder= this.id.substr(3,this.id.length);
+console.log(elementOrder);
+
+var parentDiv=$('#FilledDataInThisDay');
+var ulElement=$("<ul/>");
+var value=historyXMLData[elementOrder].answerWrapper;
+console.log("the value is "+JSON.stringify(value));
+//jsonData[indjsonData];
+for(var individualQuestionData in historyXMLData[elementOrder].answerWrapper)
+			{
+			console.log("inside answerWrapper");
+			var liValue=$("<li/>").text(historyXMLData[elementOrder].answerWrapper[individualQuestionData].QuestionRecord.shivalightning__QuestionName__c);
+			ulElement.append(liValue);
+			}
+
+parentDiv.html(ulElement);
+}
+
+function hisoryTabCalloutHelper()
+{
+
+var xhr = new XMLHttpRequest();
+var jsHTMLLoading;
+	console.log("in answer set ");
+var dynamicHtmlValue=$('#contentDiv').html('').attr("class","bgcolorGreen");
+//var url = "http://127.0.0.1:3001/fetchAnswerHistory";
+var url=globalLocation+"fetchAnswerHistory";
+
+xhr.open("GET", url, true);
+xhr.setRequestHeader("Content-type", "application/json");
+xhr.onreadystatechange = function () 
+{
+    if (xhr.readyState === 4 && xhr.status === 200) 
+	{
+	var jsonData=JSON.parse(xhr.responseText);
+		console.log("jsonData "+xhr.responseText +" length is "+xhr.responseText.length);
+
+	if(jsonData==null || xhr.responseText=="\"\"")
+	{
+		console.log("no data found in fetchAnswers");
+
+	}
+	else
+	{
+	historyXMLData=JSON.parse(xhr.responseText);
+	handleHistoryTabFunction();
+	/*
+			for(var  indjsonData in jsonData)
+			{
+			jsHTMLLoading=$('<input/>').attr({ type: 'button', name:'button',id:'Day'+indjsonData, value:indjsonData}).on("click",historyDayHandler);
+			dynamicHtmlValue.append(jsHTMLLoading);
+			/*for(var individualQuestionData in jsonData[indjsonData].answerWrapper)
+			{
+			dynamicHtmlValue+= jsonData[indjsonData].answerWrapper[individualQuestionData].QuestionRecord.shivalightning__QuestionName__c;
+			dynamicHtmlValue+=" answer :"+jsonData[indjsonData].answerWrapper[individualQuestionData].AnswerData;
+			dynamicHtmlValue+="<br/>";
+			}
+			dynamicHtmlValue+="<br/><br/>"; 
+			}
+		*/	
+	
+	 }
+}
+//$('#contentDiv').html(dynamicHtmlValue).attr("class","bgcolorGreen");
+};
+console.log("value is "+dynamicHtmlValue);
+
+xhr.send();
+
+
+
+}
+
+
+
+/*
+
+for(var objectValue in allQuestionsWithType)
+			  {
+			  console.log(objectValue);
+			  			  console.log(allQuestionsWithType[objectValue]);
+			  			  console.log(allQuestionsWithType[objectValue].type+" " +allQuestionsWithType[objectValue].value);
+					if(!dynamicDataLoading)
+					{
+								if(allQuestionsWithType[objectValue].type=="text")
+								{
+										dynamicDataLoading="<input type='text' size='5'>"+allQuestionsWithType[objectValue].value+" </input> <br/>";
+								}
+								else
+								{
+									dynamicDataLoading="<input type='checkbox' >"+allQuestionsWithType[objectValue].value +"</input><br/>";
+
+								}
+					}
+					else
+					{
+					
+								if(allQuestionsWithType[objectValue].type=="text")
+								{
+										dynamicDataLoading+="<input type='text' size='5'>"+allQuestionsWithType[objectValue].value+ "</input> <br/>";
+								}
+								else
+								{
+									dynamicDataLoading+="<input type='checkbox' >"+allQuestionsWithType[objectValue].value +"</input><br/>";
+
+								}
+					}
+			  }
+console.log(dynamicDataLoading);
+$('#contentDiv').html(dynamicDataLoading).attr("class","bgcolorGreen");
+
+*/
+
+});
+
+</script>
+
+
+<body class="w3-black">
+
+<!-- Icon Bar (Sidebar - hidden on small screens) -->
+<nav class="w3-sidebar w3-bar-block w3-small w3-hide-small w3-center" >
+  <!-- Avatar image in top left corner -->
+  <img src="avatar_smoke.jpg" style="width:100%" >
+  <div id="questionAnchorNav">
+  <a  class="w3-bar-item w3-button w3-padding-large w3-black" name="questionAnchor" id="questionAnchor" >
+    <i class="fa fa-home w3-xxlarge"></i>
+    <p>Daily Questions</p>
+  </a>
+ </div>
+   <div id="answerAnchorNav">
+
+  <a  class="w3-bar-item w3-button w3-padding-large w3-hover-black" name="answerAnchor" id="answerAnchor">
+    <i class="fa fa-user w3-xxlarge"></i>
+    <p>Your Answer</p>
+  </a>
+  </div>
+  <div id="historyAnchorNav">
+   <a  class="w3-bar-item w3-button w3-padding-large w3-hover-black" name="historyAnchor" id="historyAnchor">
+    <i class="fa fa-user w3-xxlarge"></i>
+    <p>History</p>
+  </a>
+  </div>
+</nav>
+
+
+ <div id="contentDiv" style="margin-left:200px">
+ 
+ </div>
+  
+    <!-- Footer -->
+  <footer class="w3-content w3-padding-64 w3-text-grey w3-xlarge">
+    <i class="fa fa-facebook-official w3-hover-opacity"></i>
+    <i class="fa fa-instagram w3-hover-opacity"></i>
+
+  <!-- End footer -->
+  </footer>
+
+<!-- END PAGE CONTENT -->
+</div>
+
+</body>
+</html>

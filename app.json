@@ -1,0 +1,6 @@
+{
+"name" : "Node.js getting started",
+"description": "My app hosting",
+"repository": "https://git.heroku.com/your-daily-planner",
+"keywords": ["node","express","static"],
+}
