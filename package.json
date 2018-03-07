@@ -13,14 +13,13 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
     "express": "^4.16.2",
     "http": "^0.0.0",
     "jsforce": "^1.8.1"
   },
-  "repository":
-  {
-  "type":"git",
-  "url":"https://git.heroku.com/your-daily-planner"
+  "repository": {
+    "type": "git",
+    "url": "https://git.heroku.com/your-daily-planner"
   }
-  
 }
